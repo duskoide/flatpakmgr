@@ -135,14 +135,34 @@ impl FlatpakService {
     }
 
     pub fn install_cmd(&self, remote: &str, ref_: &str, inst: Installation) -> (String, Command) {
-        let mut cmd = Command::new("flatpak");
-        cmd.arg("install").arg("-y").arg(format!("--{}", inst)).arg(remote).arg(ref_);
+        let mut cmd = match inst {
+            Installation::System => {
+                let mut c = Command::new("pkexec");
+                c.arg("flatpak").arg("install").arg("-y").arg("--system").arg(remote).arg(ref_);
+                c
+            }
+            Installation::User => {
+                let mut c = Command::new("flatpak");
+                c.arg("install").arg("-y").arg("--user").arg(remote).arg(ref_);
+                c
+            }
+        };
         (format!("install {} from {}", ref_, remote), cmd)
     }
 
     pub fn update_cmd(&self, ref_: Option<&str>, inst: Installation) -> (String, Command) {
-        let mut cmd = Command::new("flatpak");
-        cmd.arg("update").arg("-y").arg(format!("--{}", inst));
+        let mut cmd = match inst {
+            Installation::System => {
+                let mut c = Command::new("pkexec");
+                c.arg("flatpak").arg("update").arg("-y").arg("--system");
+                c
+            }
+            Installation::User => {
+                let mut c = Command::new("flatpak");
+                c.arg("update").arg("-y").arg("--user");
+                c
+            }
+        };
         if let Some(r) = ref_ {
             cmd.arg(r);
         }
@@ -154,8 +174,18 @@ impl FlatpakService {
     }
 
     pub fn uninstall_cmd(&self, ref_: &str, inst: Installation, delete_data: bool) -> (String, Command) {
-        let mut cmd = Command::new("flatpak");
-        cmd.arg("uninstall").arg("-y").arg(format!("--{}", inst)).arg(ref_);
+        let mut cmd = match inst {
+            Installation::System => {
+                let mut c = Command::new("pkexec");
+                c.arg("flatpak").arg("uninstall").arg("-y").arg("--system").arg(ref_);
+                c
+            }
+            Installation::User => {
+                let mut c = Command::new("flatpak");
+                c.arg("uninstall").arg("-y").arg("--user").arg(ref_);
+                c
+            }
+        };
         if delete_data {
             cmd.arg("--delete-data");
         }

@@ -157,7 +157,9 @@ fn handle_search_input(app: &mut App, key: KeyEvent) {
         KeyCode::Esc => app.focus = Focus::List,
         KeyCode::Tab | KeyCode::BackTab => app.focus = Focus::List,
         KeyCode::Enter => {
+            tracing::info!("Enter pressed in search, cursor={}, results={}", app.install.cursor, app.install.results.len());
             if let Some(hit) = app.install.results.get(app.install.cursor) {
+                tracing::info!("Installing: {} from {}", hit.id, hit.remotes.first().unwrap_or(&String::new()));
                 let remote = hit.remotes.first().cloned().unwrap_or_default();
                 let kind = if hit.id.contains(".Runtime") {
                     "runtime"
@@ -166,7 +168,8 @@ fn handle_search_input(app: &mut App, key: KeyEvent) {
                 };
                 let ref_ = format!("{}/{}/{}/{}", kind, hit.id, "x86_64", hit.branch);
                 let (desc, cmd) = crate::flatpak_service::FlatpakService::new()
-                    .install_cmd(&remote, &ref_, Installation::User);
+                    .install_cmd(&remote, &ref_, Installation::System);
+                tracing::info!("Spawning install job: {}", desc);
                 app.jobs.spawn(desc.clone(), move |id, tx| {
                     tokio::spawn(crate::flatpak_service::job::run_flatpak_job(
                         id, desc, cmd, tx,
