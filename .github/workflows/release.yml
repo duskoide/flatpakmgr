@@ -3,6 +3,7 @@ name: Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -29,4 +30,10 @@ jobs:
       - name: Upload artifacts
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload ${{ github.event.release.tag_name }} flatpakmgr-linux-x86_64.tar.gz flatpakmgr-linux-x86_64.zip flatpakmgr-linux-x86_64.sha256
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+          else
+            TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          fi
+          gh release upload "$TAG" flatpakmgr-linux-x86_64.tar.gz flatpakmgr-linux-x86_64.zip flatpakmgr-linux-x86_64.sha256 --clobber
