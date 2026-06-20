@@ -29,11 +29,9 @@ jobs:
           cd ../..
           sha256sum flatpakmgr-linux-x86_64.tar.gz flatpakmgr-linux-x86_64.zip > flatpakmgr-linux-x86_64.sha256
 
-      - name: Release
+      - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}
-          name: Release ${{ github.run_number }}
           files: |
             flatpakmgr-linux-x86_64.tar.gz
             flatpakmgr-linux-x86_64.zip
