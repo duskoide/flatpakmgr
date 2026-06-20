@@ -15,9 +15,6 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: Install zip
-        run: sudo apt-get install -y zip
-
       - name: Build
         run: cargo build --release
 
@@ -29,10 +26,7 @@ jobs:
           cd ../..
           sha256sum flatpakmgr-linux-x86_64.tar.gz flatpakmgr-linux-x86_64.zip > flatpakmgr-linux-x86_64.sha256
 
-      - name: Upload to release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            flatpakmgr-linux-x86_64.tar.gz
-            flatpakmgr-linux-x86_64.zip
-            flatpakmgr-linux-x86_64.sha256
+      - name: Upload artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload ${{ github.event.release.tag_name }} flatpakmgr-linux-x86_64.tar.gz flatpakmgr-linux-x86_64.zip flatpakmgr-linux-x86_64.sha256
