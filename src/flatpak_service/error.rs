@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum FlatpakError {
     #[error("flatpak exited with code {code}: {stderr}")]
     Cli { code: i32, stderr: String },
@@ -9,7 +9,13 @@ pub enum FlatpakError {
     #[error("not found: {0}")]
     NotFound(String),
     #[error("io error: {0}")]
-    Io(#[from] std::io::Error),
+    Io(String),
+}
+
+impl From<std::io::Error> for FlatpakError {
+    fn from(err: std::io::Error) -> Self {
+        FlatpakError::Io(err.to_string())
+    }
 }
 
 pub type Result<T> = std::result::Result<T, FlatpakError>;

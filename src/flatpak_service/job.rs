@@ -63,7 +63,7 @@ impl JobManager {
         let _ = self.tx.try_send(JobEvent::Started { id, description });
         let handle = work(id, self.tx.clone());
         self.running.spawn(async move {
-            let result = handle.await.unwrap_or_else(|e| Err(FlatpakError::Io(e.into())));
+            let result = handle.await.unwrap_or_else(|e| Err(FlatpakError::Io(e.to_string())));
             (id, result)
         });
         id
