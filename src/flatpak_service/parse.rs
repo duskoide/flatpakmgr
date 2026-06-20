@@ -181,6 +181,23 @@ pub fn parse_remotes(input: &str) -> Result<Vec<Remote>> {
     Ok(out)
 }
 
+pub fn parse_progress_line(line: &str) -> Option<u16> {
+    let start = line.find('[')?;
+    let after_brackets = line[start..].find(']')? + start + 1;
+    let rest = &line[after_brackets..];
+    let num_end = rest
+        .find('%')
+        .or_else(|| {
+            rest.find(|c: char| !c.is_ascii_digit() && c != ' ' && c != '.')
+                .map(|i| i + 1)
+        })?;
+    let num_str: String = rest[..num_end]
+        .chars()
+        .filter(|c| c.is_ascii_digit())
+        .collect();
+    num_str.parse::<u16>().ok()
+}
+
 pub fn parse_history(input: &str) -> Result<Vec<HistoryEntry>> {
     let mut out = Vec::new();
     for line in input.lines() {
