@@ -15,6 +15,9 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: Install zip
+        run: sudo apt-get install -y zip
+
       - name: Build
         run: cargo build --release
 
@@ -22,8 +25,9 @@ jobs:
         run: |
           cd target/release
           tar -czf ../../flatpakmgr-linux-x86_64.tar.gz flatpakmgr
+          zip ../../flatpakmgr-linux-x86_64.zip flatpakmgr
           cd ../..
-          sha256sum flatpakmgr-linux-x86_64.tar.gz > flatpakmgr-linux-x86_64.sha256
+          sha256sum flatpakmgr-linux-x86_64.tar.gz flatpakmgr-linux-x86_64.zip > flatpakmgr-linux-x86_64.sha256
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -32,4 +36,5 @@ jobs:
           name: Release ${{ github.run_number }}
           files: |
             flatpakmgr-linux-x86_64.tar.gz
+            flatpakmgr-linux-x86_64.zip
             flatpakmgr-linux-x86_64.sha256
