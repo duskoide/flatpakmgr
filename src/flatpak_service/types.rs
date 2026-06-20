@@ -15,7 +15,7 @@ impl std::fmt::Display for Installation {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
     App,
     Runtime,
