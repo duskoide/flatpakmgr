@@ -23,9 +23,8 @@ jobs:
         run: |
           cd target/release
           tar -czf ../../flatpakmgr-linux-x86_64.tar.gz flatpakmgr
-          zip ../../flatpakmgr-linux-x86_64.zip flatpakmgr
           cd ../..
-          sha256sum flatpakmgr-linux-x86_64.tar.gz flatpakmgr-linux-x86_64.zip > flatpakmgr-linux-x86_64.sha256
+          sha256sum flatpakmgr-linux-x86_64.tar.gz > flatpakmgr-linux-x86_64.sha256
 
       - name: Upload artifacts
         env:
@@ -36,4 +35,4 @@ jobs:
           else
             TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
           fi
-          gh release upload "$TAG" flatpakmgr-linux-x86_64.tar.gz flatpakmgr-linux-x86_64.zip flatpakmgr-linux-x86_64.sha256 --clobber
+          gh release upload "$TAG" flatpakmgr-linux-x86_64.tar.gz flatpakmgr-linux-x86_64.sha256 --clobber
