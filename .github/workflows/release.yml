@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Package
+        run: |
+          cd target/release
+          tar -czf ../../flatpakmgr-linux-x86_64.tar.gz flatpakmgr
+          cd ../..
+          sha256sum flatpakmgr-linux-x86_64.tar.gz > flatpakmgr-linux-x86_64.sha256
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release ${{ github.run_number }}
+          files: |
+            flatpakmgr-linux-x86_64.tar.gz
+            flatpakmgr-linux-x86_64.sha256
