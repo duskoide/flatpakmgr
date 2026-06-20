@@ -19,6 +19,7 @@ impl Config {
         }
     }
 
+    #[allow(dead_code)]
     pub fn save(&self) -> anyhow::Result<()> {
         let path = config_path()?;
         fs::create_dir_all(path.parent().unwrap())?;

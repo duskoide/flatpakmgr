@@ -13,6 +13,12 @@ use tokio::process::Command;
 #[derive(Debug, Clone)]
 pub struct FlatpakService;
 
+impl Default for FlatpakService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FlatpakService {
     pub fn new() -> Self {
         Self

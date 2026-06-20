@@ -59,6 +59,12 @@ pub struct App {
     pub refresh_tx: mpsc::Sender<RefreshMsg>,
 }
 
+impl Default for App {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl App {
     pub fn new() -> Self {
         let (refresh_tx, refresh_rx) = mpsc::channel(32);
@@ -88,11 +94,10 @@ impl App {
     }
 
     pub fn clear_expired_toast(&mut self) {
-        if let Some((_, t)) = &self.toast {
-            if t.elapsed().as_secs() > 5 {
+        if let Some((_, t)) = &self.toast
+            && t.elapsed().as_secs() > 5 {
                 self.toast = None;
             }
-        }
     }
 }
 

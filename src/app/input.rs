@@ -105,14 +105,13 @@ fn handle_list_input(app: &mut App, key: KeyEvent) {
             }
         }
         KeyCode::Char('e') => {
-            if app.tab == Tab::Remotes {
-                if let Some(r) = app.remotes.selected_remote() {
+            if app.tab == Tab::Remotes
+                && let Some(r) = app.remotes.selected_remote() {
                     let name = r.name.clone();
                     let inst = r.installation.clone();
                     let enable = r.disabled;
                     crate::app::start_remote_toggle(app, name, inst, enable);
                 }
-            }
         }
         KeyCode::Char('p') => {
             if let Some(a) = app.apps.selected_ref() {

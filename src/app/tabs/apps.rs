@@ -25,7 +25,7 @@ impl AppsTab {
             .filter(|a| {
                 self.filter_inst
                     .as_ref()
-                    .map_or(true, |i| a.installation == *i)
+                    .is_none_or(|i| a.installation == *i)
             })
             .filter(|a| {
                 let q = self.filter_text.to_lowercase();

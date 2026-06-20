@@ -36,6 +36,7 @@ struct Cli {
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     telemetry::init(cli.verbose)?;
+    let _config = config::Config::load().unwrap_or_default();
 
     terminal::enable_raw_mode()?;
     let mut stdout = io::stdout();

@@ -68,7 +68,7 @@ fn parse_size(s: &str) -> Result<u64> {
     if trimmed == "0 bytes" || trimmed.is_empty() {
         return Ok(0);
     }
-    let numeric: String = trimmed.chars().filter(|c| c.is_digit(10) || *c == '.').collect();
+    let numeric: String = trimmed.chars().filter(|c| c.is_ascii_digit() || *c == '.').collect();
     let value: f64 = numeric.parse().map_err(|_| crate::flatpak_service::FlatpakError::Parse {
         line: s.to_string(),
         msg: "cannot parse size".to_string(),
@@ -162,7 +162,7 @@ pub fn parse_remotes(input: &str) -> Result<Vec<Remote>> {
                 msg: format!("expected 6 columns, got {}", cols.len()),
             });
         }
-        let disabled = cols[4].to_ascii_lowercase() == "true";
+        let disabled = cols[4].eq_ignore_ascii_case("true");
         let priority: i32 = cols[5].parse().map_err(|_| {
             crate::flatpak_service::FlatpakError::Parse {
                 line: line.to_string(),
