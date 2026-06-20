@@ -1,7 +1,7 @@
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind};
 use crate::app::mode::{ConfirmAction, Focus, Modal, Mode, Tab};
 use crate::app::tabs::TabState;
-use crate::app::{start_uninstall, start_update, App};
+use crate::app::{start_permissions_refresh, start_uninstall, start_update, App};
 use crate::flatpak_service::types::Installation;
 
 pub fn handle_input(app: &mut App, event: Event) {
@@ -115,6 +115,13 @@ fn handle_list_input(app: &mut App, key: KeyEvent) {
                     let enable = r.disabled;
                     crate::app::start_remote_toggle(app, name, inst, enable);
                 }
+            }
+        }
+        KeyCode::Char('p') => {
+            if let Some(a) = app.apps.selected_ref() {
+                let id = a.id.clone();
+                app.mode = Mode::Modal(Modal::Permissions { id: id.clone() });
+                start_permissions_refresh(app, id);
             }
         }
         KeyCode::Char('/') => {

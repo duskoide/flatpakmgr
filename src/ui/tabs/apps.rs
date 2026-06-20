@@ -9,12 +9,16 @@ use crate::app::mode::Focus;
 use crate::app::App;
 
 pub fn draw_apps(frame: &mut Frame, app: &App, area: Rect, focus: Focus) {
-    let chunks = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(40), Constraint::Percentage(60)])
-        .split(area);
-    draw_list(frame, app, chunks[0], focus == Focus::List || focus == Focus::Tabs);
-    draw_detail(frame, app, chunks[1], focus == Focus::Detail);
+    if app.last_width < 100 {
+        draw_list(frame, app, area, focus == Focus::List || focus == Focus::Tabs);
+    } else {
+        let chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(40), Constraint::Percentage(60)])
+            .split(area);
+        draw_list(frame, app, chunks[0], focus == Focus::List || focus == Focus::Tabs);
+        draw_detail(frame, app, chunks[1], focus == Focus::Detail);
+    }
 }
 
 fn draw_list(frame: &mut Frame, app: &App, area: Rect, focused: bool) {

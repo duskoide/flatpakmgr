@@ -12,7 +12,7 @@ use crate::app::tabs::install::InstallTab;
 use crate::app::tabs::remotes::RemotesTab;
 use crate::app::tabs::runtimes::RuntimesTab;
 use crate::flatpak_service::job::JobManager;
-use crate::flatpak_service::types::{AppDetail, AppRef, HistoryEntry, Remote, SearchHit};
+use crate::flatpak_service::types::{AppDetail, AppRef, HistoryEntry, Permission, Remote, SearchHit};
 
 #[derive(Debug, Clone)]
 pub enum RefreshMsg {
@@ -27,6 +27,10 @@ pub enum RefreshMsg {
     SearchResults {
         token: u64,
         results: crate::flatpak_service::Result<Vec<SearchHit>>,
+    },
+    Permissions {
+        id: String,
+        perms: Vec<Permission>,
     },
 }
 
@@ -190,5 +194,14 @@ pub fn start_remote_toggle(app: &mut App, name: String, inst: Installation, enab
     let (desc, cmd) = FlatpakService::new().remote_modify_cmd(&name, inst, enable);
     app.jobs.spawn(desc.clone(), move |id, tx| {
         tokio::spawn(run_flatpak_job(id, desc, cmd, tx))
+    });
+}
+
+pub fn start_permissions_refresh(app: &mut App, id: String) {
+    let tx = app.refresh_tx.clone();
+    tokio::spawn(async move {
+        let svc = FlatpakService::new();
+        let perms = svc.permissions(&id).await.unwrap_or_default();
+        let _ = tx.send(RefreshMsg::Permissions { id, perms }).await;
     });
 }

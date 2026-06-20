@@ -1,5 +1,5 @@
 use crate::app::tabs::TabState;
-use crate::flatpak_service::types::{AppDetail, AppRef, Installation};
+use crate::flatpak_service::types::{AppDetail, AppRef, Installation, Permission};
 use ratatui::text::Line;
 
 #[derive(Debug, Default)]
@@ -11,6 +11,7 @@ pub struct AppsTab {
     pub loading: bool,
     pub filter_text: String,
     pub filter_inst: Option<Installation>,
+    pub permissions: Vec<Permission>,
 }
 
 impl AppsTab {

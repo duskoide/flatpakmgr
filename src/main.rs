@@ -153,5 +153,8 @@ fn apply_refresh(app: &mut app::App, msg: app::RefreshMsg) {
                 app.install.loading = false;
             }
         }
+        app::RefreshMsg::Permissions { id: _, perms } => {
+            app.apps.permissions = perms;
+        }
     }
 }

@@ -10,6 +10,26 @@ use crate::app::App;
 
 pub fn layout(frame: &mut Frame, app: &App, draw_content: impl FnOnce(&mut Frame, &App, Rect)) {
     let size = frame.area();
+
+    if size.width < 60 {
+        let chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(3),
+                Constraint::Min(0),
+                Constraint::Length(1),
+            ])
+            .split(size);
+        draw_tab_bar(frame, app, chunks[0]);
+        frame.render_widget(
+            ratatui::widgets::Paragraph::new("Terminal too narrow (need 60+ cols)")
+                .style(Style::default().fg(Color::Red)),
+            chunks[1],
+        );
+        crate::ui::status_bar::draw(frame, app, chunks[2]);
+        return;
+    }
+
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([

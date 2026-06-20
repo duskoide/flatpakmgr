@@ -19,6 +19,11 @@ pub fn draw(frame: &mut Frame, _app: &App) {
         Line::from("1-5     Switch tabs"),
         Line::from("j/k     Navigate list"),
         Line::from("r       Refresh"),
+        Line::from("u/U     Update app/all"),
+        Line::from("d       Uninstall app"),
+        Line::from("p       Show permissions"),
+        Line::from("e       Toggle remote"),
+        Line::from("/       Search (Install tab)"),
         Line::from("Tab     Next pane"),
         Line::from("Esc     Back / close"),
     ];
