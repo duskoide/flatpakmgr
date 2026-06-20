@@ -132,6 +132,8 @@ fn handle_list_input(app: &mut App, key: KeyEvent) {
         KeyCode::Tab => {
             if app.tab == Tab::Apps {
                 app.focus = Focus::Detail;
+            } else {
+                app.focus = Focus::Tabs;
             }
         }
         KeyCode::BackTab => app.focus = Focus::Tabs,
@@ -144,6 +146,7 @@ fn handle_detail_input(app: &mut App, key: KeyEvent) {
     match key.code {
         KeyCode::Char('q') => app.should_quit = true,
         KeyCode::Esc | KeyCode::BackTab => app.focus = Focus::List,
+        KeyCode::Tab => app.focus = Focus::Tabs,
         _ => {}
     }
 }
@@ -158,7 +161,7 @@ fn handle_search_input(app: &mut App, key: KeyEvent) {
             app.install.query.pop();
             crate::app::start_search(app);
         }
-        KeyCode::Esc => app.focus = Focus::List,
+        KeyCode::Esc | KeyCode::Tab => app.focus = Focus::List,
         KeyCode::Enter => {
             if let Some(hit) = app.install.results.get(app.install.cursor) {
                 let remote = hit.remotes.first().cloned().unwrap_or_default();
