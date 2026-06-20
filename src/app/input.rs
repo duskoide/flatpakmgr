@@ -9,12 +9,15 @@ pub fn handle_input(app: &mut App, event: Event) {
         if key.kind != KeyEventKind::Press {
             return;
         }
-        if matches!(app.mode, crate::app::mode::Mode::Modal(_)) {
+        if matches!(app.mode, Mode::Modal(_)) {
             handle_modal_input(app, key);
             return;
         }
+        // Global keys (work from any focus except Search)
+        if app.focus != Focus::Search && handle_global_keys(app, key) {
+            return;
+        }
         match app.focus {
-            Focus::Tabs => handle_tab_bar_input(app, key),
             Focus::List => handle_list_input(app, key),
             Focus::Detail => handle_detail_input(app, key),
             Focus::Search => handle_search_input(app, key),
@@ -22,61 +25,35 @@ pub fn handle_input(app: &mut App, event: Event) {
     }
 }
 
-fn handle_tab_bar_input(app: &mut App, key: KeyEvent) {
+/// Returns true if the key was handled
+fn handle_global_keys(app: &mut App, key: KeyEvent) -> bool {
     match key.code {
-        KeyCode::Char('q') => app.should_quit = true,
-        KeyCode::Char('?') => app.mode = crate::app::mode::Mode::Modal(Modal::Help),
-        KeyCode::Char('J') => app.mode = crate::app::mode::Mode::Modal(Modal::Jobs),
-        KeyCode::Char('1') => {
-            app.tab = Tab::Apps;
-            crate::app::start_apps_refresh(app);
-        }
-        KeyCode::Char('2') => {
-            app.tab = Tab::Runtimes;
-            crate::app::start_runtimes_refresh(app);
-        }
-        KeyCode::Char('3') => {
-            app.tab = Tab::Remotes;
-            crate::app::start_remotes_refresh(app);
-        }
-        KeyCode::Char('4') => {
-            app.tab = Tab::History;
-            crate::app::start_history_refresh(app);
-        }
-        KeyCode::Char('5') => {
-            app.tab = Tab::Install;
-            app.focus = Focus::Search;
-        }
-        KeyCode::Tab => app.focus = Focus::List,
-        _ => {}
+        KeyCode::Char('q') => { app.should_quit = true; true }
+        KeyCode::Char('?') => { app.mode = Mode::Modal(Modal::Help); true }
+        KeyCode::Char('J') => { app.mode = Mode::Modal(Modal::Jobs); true }
+        KeyCode::Char('1') => { switch_tab(app, Tab::Apps); true }
+        KeyCode::Char('2') => { switch_tab(app, Tab::Runtimes); true }
+        KeyCode::Char('3') => { switch_tab(app, Tab::Remotes); true }
+        KeyCode::Char('4') => { switch_tab(app, Tab::History); true }
+        KeyCode::Char('5') => { switch_tab(app, Tab::Install); true }
+        _ => false,
+    }
+}
+
+fn switch_tab(app: &mut App, tab: Tab) {
+    app.tab = tab;
+    app.focus = Focus::List;
+    match tab {
+        Tab::Apps => crate::app::start_apps_refresh(app),
+        Tab::Runtimes => crate::app::start_runtimes_refresh(app),
+        Tab::Remotes => crate::app::start_remotes_refresh(app),
+        Tab::History => crate::app::start_history_refresh(app),
+        Tab::Install => {},
     }
 }
 
 fn handle_list_input(app: &mut App, key: KeyEvent) {
     match key.code {
-        KeyCode::Char('q') => app.should_quit = true,
-        KeyCode::Char('?') => app.mode = Mode::Modal(Modal::Help),
-        KeyCode::Char('J') => app.mode = Mode::Modal(Modal::Jobs),
-        KeyCode::Char('1') => {
-            app.tab = Tab::Apps;
-            crate::app::start_apps_refresh(app);
-        }
-        KeyCode::Char('2') => {
-            app.tab = Tab::Runtimes;
-            crate::app::start_runtimes_refresh(app);
-        }
-        KeyCode::Char('3') => {
-            app.tab = Tab::Remotes;
-            crate::app::start_remotes_refresh(app);
-        }
-        KeyCode::Char('4') => {
-            app.tab = Tab::History;
-            crate::app::start_history_refresh(app);
-        }
-        KeyCode::Char('5') => {
-            app.tab = Tab::Install;
-            app.focus = Focus::Search;
-        }
         KeyCode::Char('r') => match app.tab {
             Tab::Apps => crate::app::start_apps_refresh(app),
             Tab::Runtimes => crate::app::start_runtimes_refresh(app),
@@ -154,21 +131,16 @@ fn handle_list_input(app: &mut App, key: KeyEvent) {
                 app.focus = Focus::Detail;
             } else if app.tab == Tab::Install {
                 app.focus = Focus::Search;
-            } else {
-                app.focus = Focus::Tabs;
             }
         }
-        KeyCode::BackTab => app.focus = Focus::Tabs,
-        KeyCode::Esc => app.focus = Focus::Tabs,
+        KeyCode::BackTab | KeyCode::Esc => {}
         _ => {}
     }
 }
 
 fn handle_detail_input(app: &mut App, key: KeyEvent) {
     match key.code {
-        KeyCode::Char('q') => app.should_quit = true,
-        KeyCode::Esc | KeyCode::BackTab => app.focus = Focus::List,
-        KeyCode::Tab => app.focus = Focus::Tabs,
+        KeyCode::Tab | KeyCode::BackTab | KeyCode::Esc => app.focus = Focus::List,
         _ => {}
     }
 }
@@ -184,7 +156,7 @@ fn handle_search_input(app: &mut App, key: KeyEvent) {
             crate::app::start_search(app);
         }
         KeyCode::Esc => app.focus = Focus::List,
-        KeyCode::Tab => app.focus = Focus::Tabs,
+        KeyCode::Tab | KeyCode::BackTab => app.focus = Focus::List,
         KeyCode::Enter => {
             if let Some(hit) = app.install.results.get(app.install.cursor) {
                 let remote = hit.remotes.first().cloned().unwrap_or_default();

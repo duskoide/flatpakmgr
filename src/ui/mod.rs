@@ -11,9 +11,9 @@ use crate::app::App;
 pub fn draw(frame: &mut Frame, app: &App) {
     layout::layout(frame, app, |frame, app, area| match app.tab {
         Tab::Apps => tabs::apps::draw_apps(frame, app, area, app.focus),
-        Tab::Runtimes => tabs::runtimes::draw_runtimes(frame, app, area, app.focus == Focus::List || app.focus == Focus::Tabs),
-        Tab::Remotes => tabs::remotes::draw_remotes(frame, app, area, app.focus == Focus::List || app.focus == Focus::Tabs),
-        Tab::History => tabs::history::draw_history(frame, app, area, app.focus == Focus::List || app.focus == Focus::Tabs),
-        Tab::Install => tabs::install::draw_install(frame, app, area, app.focus == Focus::List || app.focus == Focus::Search || app.focus == Focus::Tabs),
+        Tab::Runtimes => tabs::runtimes::draw_runtimes(frame, app, area, app.focus == Focus::List),
+        Tab::Remotes => tabs::remotes::draw_remotes(frame, app, area, app.focus == Focus::List),
+        Tab::History => tabs::history::draw_history(frame, app, area, app.focus == Focus::List),
+        Tab::Install => tabs::install::draw_install(frame, app, area, app.focus == Focus::List || app.focus == Focus::Search),
     });
 }

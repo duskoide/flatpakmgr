@@ -31,7 +31,6 @@ impl Tab {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Focus {
-    Tabs,
     List,
     Detail,
     Search,
