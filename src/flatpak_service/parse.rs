@@ -3,7 +3,7 @@ use crate::flatpak_service::Result;
 
 pub fn parse_list(input: &str, kind: Kind) -> Result<Vec<AppRef>> {
     let mut out = Vec::new();
-    for (_idx, line) in input.lines().enumerate() {
+    for line in input.lines() {
         if line.is_empty() {
             continue;
         }
@@ -80,6 +80,9 @@ fn parse_size(s: &str) -> Result<u64> {
     } else if trimmed.contains("kB") {
         Ok((value * 1024.0) as u64)
     } else {
-        Ok(value as u64)
+        Err(crate::flatpak_service::FlatpakError::Parse {
+            line: s.to_string(),
+            msg: "unrecognized size unit".to_string(),
+        })
     }
 }

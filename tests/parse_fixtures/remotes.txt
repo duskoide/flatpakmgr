@@ -1,1 +1,1 @@
-flathub	Flathub	https://dl.flathub.org/repo/	1
+flathub	Flathub	https://dl.flathub.org/repo/	system	false	1
