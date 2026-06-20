@@ -166,7 +166,7 @@ fn handle_search_input(app: &mut App, key: KeyEvent) {
                 };
                 let ref_ = format!("{}/{}/{}/{}", kind, hit.id, "x86_64", hit.branch);
                 let (desc, cmd) = crate::flatpak_service::FlatpakService::new()
-                    .install_cmd(&remote, &ref_, Installation::System);
+                    .install_cmd(&remote, &ref_, Installation::User);
                 app.jobs.spawn(desc.clone(), move |id, tx| {
                     tokio::spawn(crate::flatpak_service::job::run_flatpak_job(
                         id, desc, cmd, tx,
