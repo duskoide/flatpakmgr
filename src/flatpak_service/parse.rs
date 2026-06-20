@@ -1,4 +1,4 @@
-use crate::flatpak_service::types::{AppRef, Installation, Kind};
+use crate::flatpak_service::types::{AppDetail, AppRef, Installation, Kind, Permission};
 use crate::flatpak_service::Result;
 
 pub fn parse_list(input: &str, kind: Kind) -> Result<Vec<AppRef>> {
@@ -85,4 +85,66 @@ fn parse_size(s: &str) -> Result<u64> {
             msg: "unrecognized size unit".to_string(),
         })
     }
+}
+
+pub fn parse_info(text: &str, basic: AppRef) -> Result<AppDetail> {
+    let mut runtime = None;
+    let mut sdk = None;
+    let mut license = None;
+    let mut installed_size = 0u64;
+    let mut commit = String::new();
+    let mut subject = String::new();
+    let mut date: Option<chrono::DateTime<chrono::Utc>> = None;
+
+    for raw in text.lines() {
+        let line = raw.trim_end();
+        if let Some((key, value)) = line.split_once(':') {
+            let key = key.trim();
+            let value = value.trim();
+            match key {
+                "Runtime" => runtime = Some(value.to_string()),
+                "Sdk" => sdk = Some(value.to_string()),
+                "License" => license = Some(value.to_string()),
+                "Installed" => installed_size = parse_size(value).unwrap_or(0),
+                "Commit" => commit = value.to_string(),
+                "Subject" => subject = value.to_string(),
+                "Date" => {
+                    date = chrono::DateTime::parse_from_str(value, "%Y-%m-%d %H:%M:%S %z")
+                        .ok()
+                        .map(|dt| dt.with_timezone(&chrono::Utc));
+                }
+                _ => {}
+            }
+        }
+    }
+
+    Ok(AppDetail {
+        basic,
+        runtime,
+        sdk,
+        license,
+        installed_size,
+        commit,
+        subject,
+        date,
+        permissions: Vec::new(),
+    })
+}
+
+pub fn parse_permissions(text: &str) -> Vec<Permission> {
+    let mut perms = Vec::new();
+    for line in text.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        if let Some((table, rest)) = line.split_once('\t') {
+            let entries: Vec<String> = rest.split_whitespace().map(|s| s.to_string()).collect();
+            perms.push(Permission {
+                table: table.to_string(),
+                entries,
+            });
+        }
+    }
+    perms
 }

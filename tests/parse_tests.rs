@@ -1,5 +1,5 @@
-use flatpakmgr::flatpak_service::types::Kind;
-use flatpakmgr::flatpak_service::parse::parse_list;
+use flatpakmgr::flatpak_service::types::{AppRef, Installation, Kind};
+use flatpakmgr::flatpak_service::parse::{parse_list, parse_info};
 
 fn fixture(name: &str) -> String {
     std::fs::read_to_string(format!("tests/parse_fixtures/{}", name)).unwrap()
@@ -42,4 +42,30 @@ fn parse_list_bad_column_count() {
         }
         other => panic!("unexpected error: {:?}", other),
     }
+}
+
+#[test]
+fn parse_info_zen_ok() {
+    let text = fixture("info_zen.txt");
+    let basic = AppRef {
+        name: "Zen".into(),
+        description: "".into(),
+        id: "app.zen_browser.zen".into(),
+        version: "1.21.3b".into(),
+        branch: "stable".into(),
+        arch: "x86_64".into(),
+        origin: "flathub".into(),
+        installation: Installation::System,
+        size_bytes: 0,
+        ref_: "app/app.zen_browser.zen/x86_64/stable".into(),
+        kind: Kind::App,
+    };
+    let detail = parse_info(&text, basic).expect("parse info");
+    assert!(!detail.commit.is_empty());
+    assert_eq!(detail.runtime.as_deref(), Some("org.freedesktop.Platform/x86_64/25.08"));
+    assert_eq!(detail.sdk.as_deref(), Some("org.freedesktop.Sdk/x86_64/25.08"));
+    assert_eq!(detail.license.as_deref(), Some("MPL-2.0"));
+    assert!(detail.installed_size > 0);
+    assert!(detail.subject.contains("Merge pull request"));
+    assert!(detail.date.is_some());
 }
