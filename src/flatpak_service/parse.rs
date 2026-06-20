@@ -9,7 +9,7 @@ pub fn parse_list(input: &str, kind: Kind) -> Result<Vec<AppRef>> {
         }
         let cols: Vec<&str> = line.split('\t').collect();
         match cols.len() {
-            11 => {
+            10 => {
                 // Full format with description (apps)
                 out.push(AppRef {
                     name: cols[0].to_string(),
@@ -25,7 +25,7 @@ pub fn parse_list(input: &str, kind: Kind) -> Result<Vec<AppRef>> {
                     kind,
                 });
             }
-            10 => {
+            9 => {
                 // Compact format without description (runtimes)
                 out.push(AppRef {
                     name: cols[0].to_string(),
@@ -44,7 +44,7 @@ pub fn parse_list(input: &str, kind: Kind) -> Result<Vec<AppRef>> {
             n => {
                 return Err(crate::flatpak_service::FlatpakError::Parse {
                     line: line.to_string(),
-                    msg: format!("expected 10 or 11 columns, got {}", n),
+                    msg: format!("expected 9 or 10 columns, got {}", n),
                 });
             }
         }

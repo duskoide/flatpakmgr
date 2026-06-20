@@ -38,7 +38,7 @@ fn parse_list_bad_column_count() {
     let err = parse_list("too\tfew", Kind::App).unwrap_err();
     match err {
         flatpakmgr::flatpak_service::FlatpakError::Parse { msg, .. } => {
-            assert!(msg.contains("expected 10 or 11 columns"));
+            assert!(msg.contains("expected 9 or 10 columns"));
         }
         other => panic!("unexpected error: {:?}", other),
     }
