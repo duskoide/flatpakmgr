@@ -11,6 +11,7 @@ use std::io;
 use std::panic;
 
 mod config;
+mod flatpak_service;
 mod telemetry;
 
 #[derive(Parser)]
