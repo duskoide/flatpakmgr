@@ -1,5 +1,5 @@
 use flatpakmgr::flatpak_service::types::{AppRef, Installation, Kind};
-use flatpakmgr::flatpak_service::parse::{parse_list, parse_info};
+use flatpakmgr::flatpak_service::parse::{parse_history, parse_list, parse_info, parse_remotes};
 
 fn fixture(name: &str) -> String {
     std::fs::read_to_string(format!("tests/parse_fixtures/{}", name)).unwrap()
@@ -68,4 +68,18 @@ fn parse_info_zen_ok() {
     assert!(detail.installed_size > 0);
     assert!(detail.subject.contains("Merge pull request"));
     assert!(detail.date.is_some());
+}
+
+#[test]
+fn parse_remotes_ok() {
+    let text = fixture("remotes.txt");
+    let remotes = parse_remotes(&text).expect("parse remotes");
+    assert!(!remotes.is_empty());
+}
+
+#[test]
+fn parse_history_ok() {
+    let text = fixture("history.txt");
+    let entries = parse_history(&text).expect("parse history");
+    assert!(!entries.is_empty());
 }

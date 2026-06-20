@@ -1,4 +1,4 @@
-use crate::flatpak_service::types::{AppDetail, AppRef, Installation, Kind, Permission};
+use crate::flatpak_service::types::{AppDetail, AppRef, HistoryEntry, Installation, Kind, Permission, Remote};
 use crate::flatpak_service::Result;
 
 pub fn parse_list(input: &str, kind: Kind) -> Result<Vec<AppRef>> {
@@ -147,4 +147,65 @@ pub fn parse_permissions(text: &str) -> Vec<Permission> {
         }
     }
     perms
+}
+
+pub fn parse_remotes(input: &str) -> Result<Vec<Remote>> {
+    let mut out = Vec::new();
+    for line in input.lines() {
+        if line.is_empty() {
+            continue;
+        }
+        let cols: Vec<&str> = line.split('\t').collect();
+        if cols.len() < 6 {
+            return Err(crate::flatpak_service::FlatpakError::Parse {
+                line: line.to_string(),
+                msg: format!("expected 6 columns, got {}", cols.len()),
+            });
+        }
+        let disabled = cols[4].to_ascii_lowercase() == "true";
+        let priority: i32 = cols[5].parse().map_err(|_| {
+            crate::flatpak_service::FlatpakError::Parse {
+                line: line.to_string(),
+                msg: "cannot parse priority".to_string(),
+            }
+        })?;
+        out.push(Remote {
+            name: cols[0].to_string(),
+            title: cols[1].to_string(),
+            url: cols[2].to_string(),
+            installation: parse_installation(cols[3])?,
+            disabled,
+            priority,
+        });
+    }
+    Ok(out)
+}
+
+pub fn parse_history(input: &str) -> Result<Vec<HistoryEntry>> {
+    let mut out = Vec::new();
+    for line in input.lines() {
+        if line.is_empty() {
+            continue;
+        }
+        let cols: Vec<&str> = line.split('\t').collect();
+        if cols.len() < 4 {
+            return Err(crate::flatpak_service::FlatpakError::Parse {
+                line: line.to_string(),
+                msg: format!("expected 4 columns, got {}", cols.len()),
+            });
+        }
+        let time = chrono::DateTime::parse_from_str(cols[0], "%Y-%m-%d %H:%M:%S %z")
+            .map_err(|e| crate::flatpak_service::FlatpakError::Parse {
+                line: cols[0].to_string(),
+                msg: e.to_string(),
+            })?
+            .with_timezone(&chrono::Utc);
+        out.push(HistoryEntry {
+            time,
+            ref_: cols[1].to_string(),
+            operation: cols[2].to_string(),
+            user: cols[3].to_string(),
+        });
+    }
+    Ok(out)
 }
