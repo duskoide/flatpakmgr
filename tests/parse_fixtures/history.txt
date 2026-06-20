@@ -1,0 +1,5 @@
+2026-06-20 12:00:00 +0000	app.zen_browser.zen/x86_64/stable	install	system
+2026-06-20 12:00:02 +0000	org.freedesktop.Platform/x86_64/25.08	install	system
+2026-06-20 12:00:03 +0000	org.freedesktop.Platform.GL.default/x86_64/25.08	install	system
+2026-06-20 12:05:00 +0000	app.zen_browser.zen/x86_64/stable	update	system
+2026-06-19 08:30:00 +0000	io.github.flattool.Warehouse/x86_64/stable	install	system

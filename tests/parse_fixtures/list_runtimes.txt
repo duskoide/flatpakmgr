@@ -1,0 +1,7 @@
+Freedesktop Platform	org.freedesktop.Platform	freedesktop-sdk-25.08.13	25.08	x86_64	flathub	system	657.0 MB	org.freedesktop.Platform/x86_64/25.08	3f0cb4a80775
+Mesa	org.freedesktop.Platform.GL.default	26.0.8	25.08	x86_64	flathub	system	449.6 MB	org.freedesktop.Platform.GL.default/x86_64/25.08	48bdc2284c98
+Mesa (Extra)	org.freedesktop.Platform.GL.default	26.0.8	25.08-extra	x86_64	flathub	system	449.7 MB	org.freedesktop.Platform.GL.default/x86_64/25.08-extra	600b80a19d11
+Intel VAAPI driver	org.freedesktop.Platform.VAAPI.Intel		25.08	x86_64	flathub	system	45.9 MB	org.freedesktop.Platform.VAAPI.Intel/x86_64/25.08	b14889556bec
+Codecs Extra Extension	org.freedesktop.Platform.codecs-extra		25.08-extra	x86_64	flathub	system	43.4 MB	org.freedesktop.Platform.codecs-extra/x86_64/25.08-extra	37c6c8c99d44
+GNOME Application Platform version 49	org.gnome.Platform		49	x86_64	flathub	system	1.1 GB	org.gnome.Platform/x86_64/49	a59eefcd2aa6
+Breeze GTK theme	org.gtk.Gtk3theme.Breeze	6.7.0	3.22	x86_64	flathub	system	649.7 kB	org.gtk.Gtk3theme.Breeze/x86_64/3.22	c51fc9692068

@@ -1,0 +1,18 @@
+Looking for matches…
+Required runtime for app.zen_browser.zen/x86_64/stable (runtime/org.freedesktop.Platform/x86_64/25.08) found in remote flathub
+
+app.zen_browser.zen permissions:
+    network   pulseaudio   wayland   x11   dri
+
+
+        ID                                  Branch   Op   Remote   Download
+ 1.     org.freedesktop.Platform.GL.default 25.08    i    flathub  < 200 MB
+ 2.     app.zen_browser.zen                 stable   i    flathub  < 100 MB
+
+Installing 1/2…
+Installing: org.freedesktop.Platform.GL.default/x86_64/25.08 from flathub
+[####################] 100% Downloading: 198.2 MB/198.2 MB (12.3 MB/s)
+Installing 2/2…
+Installing: app.zen_browser.zen/x86_64/stable from flathub
+[##########          ]  50% Downloading: 42.3 MB/84.6 MB (8.1 MB/s)
+Installation complete.

@@ -1,0 +1,2 @@
+Zen	Stay focused, browse faster	app.zen_browser.zen	1.21.3b	stable	x86_64	flathub	system	388.0 MB	app.zen_browser.zen/x86_64/stable	2ff9887c0a2b
+Warehouse	Manage all things Flatpak	io.github.flattool.Warehouse	2.2.0	stable	x86_64	flathub	system	1.3 MB	io.github.flattool.Warehouse/x86_64/stable	9091b88e97e9
