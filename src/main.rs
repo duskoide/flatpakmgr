@@ -129,6 +129,29 @@ fn apply_refresh(app: &mut app::App, msg: app::RefreshMsg) {
                 app.apps.detail_loading = false;
             }
         }
-        _ => {}
+        app::RefreshMsg::Runtimes(items) => {
+            app.runtimes.items = items;
+            app.runtimes.loading = false;
+            app.runtimes.cursor = 0;
+        }
+        app::RefreshMsg::Remotes(items) => {
+            app.remotes.items = items;
+            app.remotes.loading = false;
+            app.remotes.cursor = 0;
+        }
+        app::RefreshMsg::History(items) => {
+            app.history.items = items;
+            app.history.loading = false;
+            app.history.cursor = 0;
+        }
+        app::RefreshMsg::SearchResults { token, results } => {
+            if token == app.install.debounce_token {
+                match results {
+                    Ok(items) => app.install.results = items,
+                    Err(e) => app.set_toast(app::Toast::Error(e.to_string())),
+                }
+                app.install.loading = false;
+            }
+        }
     }
 }

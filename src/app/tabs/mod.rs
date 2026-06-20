@@ -1,6 +1,10 @@
 use ratatui::text::Line;
 
 pub mod apps;
+pub mod history;
+pub mod install;
+pub mod remotes;
+pub mod runtimes;
 
 pub trait TabState {
     fn title(&self) -> &'static str;

@@ -7,6 +7,10 @@ use tokio::sync::mpsc;
 
 use crate::app::mode::{Focus, Mode, Tab};
 use crate::app::tabs::apps::AppsTab;
+use crate::app::tabs::history::HistoryTab;
+use crate::app::tabs::install::InstallTab;
+use crate::app::tabs::remotes::RemotesTab;
+use crate::app::tabs::runtimes::RuntimesTab;
 use crate::flatpak_service::job::JobManager;
 use crate::flatpak_service::types::{AppDetail, AppRef, HistoryEntry, Remote, SearchHit};
 
@@ -37,6 +41,10 @@ pub struct App {
     pub tab: Tab,
     pub focus: Focus,
     pub apps: AppsTab,
+    pub runtimes: RuntimesTab,
+    pub remotes: RemotesTab,
+    pub history: HistoryTab,
+    pub install: InstallTab,
     pub jobs: JobManager,
     pub toast: Option<(Toast, Instant)>,
     pub should_quit: bool,
@@ -56,6 +64,10 @@ impl App {
             tab: Tab::Apps,
             focus: Focus::List,
             apps: AppsTab::default(),
+            runtimes: RuntimesTab::default(),
+            remotes: RemotesTab::default(),
+            history: HistoryTab::default(),
+            install: InstallTab::default(),
             jobs: JobManager::new(job_tx),
             toast: None,
             should_quit: false,
@@ -116,6 +128,66 @@ pub fn start_update(app: &mut App, ref_: Option<String>, inst: Installation) {
 
 pub fn start_uninstall(app: &mut App, ref_: String, inst: Installation, delete_data: bool) {
     let (desc, cmd) = FlatpakService::new().uninstall_cmd(&ref_, inst, delete_data);
+    app.jobs.spawn(desc.clone(), move |id, tx| {
+        tokio::spawn(run_flatpak_job(id, desc, cmd, tx))
+    });
+}
+
+pub fn start_runtimes_refresh(app: &mut App) {
+    app.runtimes.loading = true;
+    let tx = app.refresh_tx.clone();
+    tokio::spawn(async move {
+        let svc = FlatpakService::new();
+        let msg = match svc.list_runtimes(None).await {
+            Ok(items) => RefreshMsg::Runtimes(items),
+            Err(_) => RefreshMsg::Runtimes(Vec::new()),
+        };
+        let _ = tx.send(msg).await;
+    });
+}
+
+pub fn start_remotes_refresh(app: &mut App) {
+    app.remotes.loading = true;
+    let tx = app.refresh_tx.clone();
+    tokio::spawn(async move {
+        let svc = FlatpakService::new();
+        let msg = match svc.list_remotes(None).await {
+            Ok(items) => RefreshMsg::Remotes(items),
+            Err(_) => RefreshMsg::Remotes(Vec::new()),
+        };
+        let _ = tx.send(msg).await;
+    });
+}
+
+pub fn start_history_refresh(app: &mut App) {
+    app.history.loading = true;
+    let tx = app.refresh_tx.clone();
+    tokio::spawn(async move {
+        let svc = FlatpakService::new();
+        let msg = match svc.list_history().await {
+            Ok(items) => RefreshMsg::History(items),
+            Err(_) => RefreshMsg::History(Vec::new()),
+        };
+        let _ = tx.send(msg).await;
+    });
+}
+
+pub fn start_search(app: &mut App) {
+    app.install.loading = true;
+    app.install.debounce_token += 1;
+    let token = app.install.debounce_token;
+    let query = app.install.query.clone();
+    let tx = app.refresh_tx.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+        let svc = FlatpakService::new();
+        let results = svc.search(&query).await;
+        let _ = tx.send(RefreshMsg::SearchResults { token, results }).await;
+    });
+}
+
+pub fn start_remote_toggle(app: &mut App, name: String, inst: Installation, enable: bool) {
+    let (desc, cmd) = FlatpakService::new().remote_modify_cmd(&name, inst, enable);
     app.jobs.spawn(desc.clone(), move |id, tx| {
         tokio::spawn(run_flatpak_job(id, desc, cmd, tx))
     });

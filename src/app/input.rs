@@ -27,11 +27,26 @@ fn handle_tab_bar_input(app: &mut App, key: KeyEvent) {
         KeyCode::Char('q') => app.should_quit = true,
         KeyCode::Char('?') => app.mode = crate::app::mode::Mode::Modal(Modal::Help),
         KeyCode::Char('J') => app.mode = crate::app::mode::Mode::Modal(Modal::Jobs),
-        KeyCode::Char('1') => app.tab = Tab::Apps,
-        KeyCode::Char('2') => app.tab = Tab::Runtimes,
-        KeyCode::Char('3') => app.tab = Tab::Remotes,
-        KeyCode::Char('4') => app.tab = Tab::History,
-        KeyCode::Char('5') => app.tab = Tab::Install,
+        KeyCode::Char('1') => {
+            app.tab = Tab::Apps;
+            crate::app::start_apps_refresh(app);
+        }
+        KeyCode::Char('2') => {
+            app.tab = Tab::Runtimes;
+            crate::app::start_runtimes_refresh(app);
+        }
+        KeyCode::Char('3') => {
+            app.tab = Tab::Remotes;
+            crate::app::start_remotes_refresh(app);
+        }
+        KeyCode::Char('4') => {
+            app.tab = Tab::History;
+            crate::app::start_history_refresh(app);
+        }
+        KeyCode::Char('5') => {
+            app.tab = Tab::Install;
+            app.focus = Focus::Search;
+        }
         KeyCode::Tab => app.focus = Focus::List,
         _ => {}
     }
@@ -42,19 +57,37 @@ fn handle_list_input(app: &mut App, key: KeyEvent) {
         KeyCode::Char('q') => app.should_quit = true,
         KeyCode::Char('?') => app.mode = Mode::Modal(Modal::Help),
         KeyCode::Char('J') => app.mode = Mode::Modal(Modal::Jobs),
-        KeyCode::Char('r') => crate::app::start_apps_refresh(app),
-        KeyCode::Char('j') | KeyCode::Down => {
-            app.apps.move_cursor(1);
-            if let Some(a) = app.apps.selected_ref() {
-                crate::app::start_app_detail_refresh(app, a.clone());
+        KeyCode::Char('r') => match app.tab {
+            Tab::Apps => crate::app::start_apps_refresh(app),
+            Tab::Runtimes => crate::app::start_runtimes_refresh(app),
+            Tab::Remotes => crate::app::start_remotes_refresh(app),
+            Tab::History => crate::app::start_history_refresh(app),
+            _ => {}
+        },
+        KeyCode::Char('j') | KeyCode::Down => match app.tab {
+            Tab::Apps => {
+                app.apps.move_cursor(1);
+                if let Some(a) = app.apps.selected_ref() {
+                    crate::app::start_app_detail_refresh(app, a.clone());
+                }
             }
-        }
-        KeyCode::Char('k') | KeyCode::Up => {
-            app.apps.move_cursor(-1);
-            if let Some(a) = app.apps.selected_ref() {
-                crate::app::start_app_detail_refresh(app, a.clone());
+            Tab::Runtimes => app.runtimes.move_cursor(1),
+            Tab::Remotes => app.remotes.move_cursor(1),
+            Tab::History => app.history.move_cursor(1),
+            Tab::Install => app.install.move_cursor(1),
+        },
+        KeyCode::Char('k') | KeyCode::Up => match app.tab {
+            Tab::Apps => {
+                app.apps.move_cursor(-1);
+                if let Some(a) = app.apps.selected_ref() {
+                    crate::app::start_app_detail_refresh(app, a.clone());
+                }
             }
-        }
+            Tab::Runtimes => app.runtimes.move_cursor(-1),
+            Tab::Remotes => app.remotes.move_cursor(-1),
+            Tab::History => app.history.move_cursor(-1),
+            Tab::Install => app.install.move_cursor(-1),
+        },
         KeyCode::Char('u') => {
             if let Some(a) = app.apps.selected_ref() {
                 let ref_ = a.ref_.clone();
@@ -74,7 +107,26 @@ fn handle_list_input(app: &mut App, key: KeyEvent) {
                 }));
             }
         }
-        KeyCode::Tab => app.focus = Focus::Detail,
+        KeyCode::Char('e') => {
+            if app.tab == Tab::Remotes {
+                if let Some(r) = app.remotes.selected_remote() {
+                    let name = r.name.clone();
+                    let inst = r.installation.clone();
+                    let enable = r.disabled;
+                    crate::app::start_remote_toggle(app, name, inst, enable);
+                }
+            }
+        }
+        KeyCode::Char('/') => {
+            if app.tab == Tab::Install {
+                app.focus = Focus::Search;
+            }
+        }
+        KeyCode::Tab => {
+            if app.tab == Tab::Apps {
+                app.focus = Focus::Detail;
+            }
+        }
         KeyCode::BackTab => app.focus = Focus::Tabs,
         KeyCode::Esc => app.focus = Focus::Tabs,
         _ => {}
@@ -89,8 +141,39 @@ fn handle_detail_input(app: &mut App, key: KeyEvent) {
     }
 }
 
-fn handle_search_input(_app: &mut App, _key: KeyEvent) {
-    // Implemented in Task 21
+fn handle_search_input(app: &mut App, key: KeyEvent) {
+    match key.code {
+        KeyCode::Char(c) => {
+            app.install.query.push(c);
+            crate::app::start_search(app);
+        }
+        KeyCode::Backspace => {
+            app.install.query.pop();
+            crate::app::start_search(app);
+        }
+        KeyCode::Esc => app.focus = Focus::List,
+        KeyCode::Enter => {
+            if let Some(hit) = app.install.results.get(app.install.cursor) {
+                let remote = hit.remotes.first().cloned().unwrap_or_default();
+                let kind = if hit.id.contains(".Runtime") {
+                    "runtime"
+                } else {
+                    "app"
+                };
+                let ref_ = format!("{}/{}/{}/{}", kind, hit.id, "x86_64", hit.branch);
+                let (desc, cmd) = crate::flatpak_service::FlatpakService::new()
+                    .install_cmd(&remote, &ref_, Installation::System);
+                app.jobs.spawn(desc.clone(), move |id, tx| {
+                    tokio::spawn(crate::flatpak_service::job::run_flatpak_job(
+                        id, desc, cmd, tx,
+                    ))
+                });
+            }
+        }
+        KeyCode::Down => app.install.move_cursor(1),
+        KeyCode::Up => app.install.move_cursor(-1),
+        _ => {}
+    }
 }
 
 fn handle_modal_input(app: &mut App, key: KeyEvent) {
