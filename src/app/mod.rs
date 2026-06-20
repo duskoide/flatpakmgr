@@ -1,3 +1,4 @@
+pub mod input;
 pub mod mode;
 pub mod tabs;
 
@@ -77,4 +78,45 @@ impl App {
             }
         }
     }
+}
+
+use crate::flatpak_service::FlatpakService;
+use crate::flatpak_service::job::run_flatpak_job;
+use crate::flatpak_service::types::Installation;
+
+pub fn start_apps_refresh(app: &mut App) {
+    app.apps.loading = true;
+    let tx = app.refresh_tx.clone();
+    tokio::spawn(async move {
+        let svc = FlatpakService::new();
+        let msg = match svc.list_apps(None).await {
+            Ok(items) => RefreshMsg::Apps(items),
+            Err(_) => RefreshMsg::Apps(Vec::new()),
+        };
+        let _ = tx.send(msg).await;
+    });
+}
+
+pub fn start_app_detail_refresh(app: &mut App, app_ref: AppRef) {
+    app.apps.detail_loading = true;
+    let tx = app.refresh_tx.clone();
+    tokio::spawn(async move {
+        let svc = FlatpakService::new();
+        let detail = svc.info(app_ref.clone()).await;
+        let _ = tx.send(RefreshMsg::AppDetail { app_ref, detail }).await;
+    });
+}
+
+pub fn start_update(app: &mut App, ref_: Option<String>, inst: Installation) {
+    let (desc, cmd) = FlatpakService::new().update_cmd(ref_.as_deref(), inst);
+    app.jobs.spawn(desc.clone(), move |id, tx| {
+        tokio::spawn(run_flatpak_job(id, desc, cmd, tx))
+    });
+}
+
+pub fn start_uninstall(app: &mut App, ref_: String, inst: Installation, delete_data: bool) {
+    let (desc, cmd) = FlatpakService::new().uninstall_cmd(&ref_, inst, delete_data);
+    app.jobs.spawn(desc.clone(), move |id, tx| {
+        tokio::spawn(run_flatpak_job(id, desc, cmd, tx))
+    });
 }
