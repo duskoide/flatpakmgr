@@ -66,7 +66,7 @@ impl App {
         Self {
             mode: Mode::Normal,
             tab: Tab::Apps,
-            focus: Focus::List,
+            focus: Focus::Tabs,
             apps: AppsTab::default(),
             runtimes: RuntimesTab::default(),
             remotes: RemotesTab::default(),

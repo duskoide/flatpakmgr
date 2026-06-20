@@ -57,6 +57,26 @@ fn handle_list_input(app: &mut App, key: KeyEvent) {
         KeyCode::Char('q') => app.should_quit = true,
         KeyCode::Char('?') => app.mode = Mode::Modal(Modal::Help),
         KeyCode::Char('J') => app.mode = Mode::Modal(Modal::Jobs),
+        KeyCode::Char('1') => {
+            app.tab = Tab::Apps;
+            crate::app::start_apps_refresh(app);
+        }
+        KeyCode::Char('2') => {
+            app.tab = Tab::Runtimes;
+            crate::app::start_runtimes_refresh(app);
+        }
+        KeyCode::Char('3') => {
+            app.tab = Tab::Remotes;
+            crate::app::start_remotes_refresh(app);
+        }
+        KeyCode::Char('4') => {
+            app.tab = Tab::History;
+            crate::app::start_history_refresh(app);
+        }
+        KeyCode::Char('5') => {
+            app.tab = Tab::Install;
+            app.focus = Focus::Search;
+        }
         KeyCode::Char('r') => match app.tab {
             Tab::Apps => crate::app::start_apps_refresh(app),
             Tab::Runtimes => crate::app::start_runtimes_refresh(app),
