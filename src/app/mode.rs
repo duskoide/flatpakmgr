@@ -20,11 +20,11 @@ impl Tab {
 
     pub fn title(&self) -> &'static str {
         match self {
-            Tab::Apps => "Apps",
-            Tab::Runtimes => "Runtimes",
-            Tab::Remotes => "Remotes",
-            Tab::History => "History",
-            Tab::Install => "Install",
+            Tab::Apps => "1.Apps",
+            Tab::Runtimes => "2.Runtimes",
+            Tab::Remotes => "3.Remotes",
+            Tab::History => "4.History",
+            Tab::Install => "5.Install",
         }
     }
 }
