@@ -4,6 +4,7 @@ pub mod parse;
 pub mod types;
 
 pub use error::{FlatpakError, Result};
+pub use job::{JobEvent, JobHandle, JobId, JobManager, JobStatus, run_flatpak_job};
 pub use parse::{parse_history, parse_info, parse_list, parse_permissions, parse_remotes};
 pub use types::*;
 
