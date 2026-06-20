@@ -127,4 +127,44 @@ impl FlatpakService {
         }
         Ok(hits)
     }
+
+    pub fn install_cmd(&self, remote: &str, ref_: &str, inst: Installation) -> (String, Command) {
+        let mut cmd = Command::new("flatpak");
+        cmd.arg("install").arg("-y").arg(format!("--{}", inst)).arg(remote).arg(ref_);
+        (format!("install {} from {}", ref_, remote), cmd)
+    }
+
+    pub fn update_cmd(&self, ref_: Option<&str>, inst: Installation) -> (String, Command) {
+        let mut cmd = Command::new("flatpak");
+        cmd.arg("update").arg("-y").arg(format!("--{}", inst));
+        if let Some(r) = ref_ {
+            cmd.arg(r);
+        }
+        let desc = match ref_ {
+            Some(r) => format!("update {}", r),
+            None => format!("update all ({})", inst),
+        };
+        (desc, cmd)
+    }
+
+    pub fn uninstall_cmd(&self, ref_: &str, inst: Installation, delete_data: bool) -> (String, Command) {
+        let mut cmd = Command::new("flatpak");
+        cmd.arg("uninstall").arg("-y").arg(format!("--{}", inst)).arg(ref_);
+        if delete_data {
+            cmd.arg("--delete-data");
+        }
+        (format!("uninstall {}", ref_), cmd)
+    }
+
+    pub fn remote_modify_cmd(&self, name: &str, inst: Installation, enable: bool) -> (String, Command) {
+        let mut cmd = Command::new("flatpak");
+        cmd.arg("remote-modify").arg(format!("--{}", inst));
+        if enable {
+            cmd.arg("--enable").arg(name);
+            (format!("enable remote {}", name), cmd)
+        } else {
+            cmd.arg("--disable").arg(name);
+            (format!("disable remote {}", name), cmd)
+        }
+    }
 }
