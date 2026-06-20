@@ -13,6 +13,24 @@ A terminal user interface (TUI) for managing Flatpak applications, built with Ru
 - Job management with progress tracking
 - Responsive layout that adapts to terminal size
 
+## Install
+
+Download the latest release from [GitHub Releases](https://github.com/duskoide/flatpakmgr/releases):
+
+```bash
+# Download and extract
+curl -sL https://github.com/duskoide/flatpakmgr/releases/latest/download/flatpakmgr-linux-x86_64.tar.gz | tar xz
+
+# Move to PATH
+sudo mv flatpakmgr /usr/local/bin/
+```
+
+Or build from source:
+
+```bash
+cargo install --path .
+```
+
 ## Build
 
 ```bash
