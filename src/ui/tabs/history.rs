@@ -1,46 +1,39 @@
 use ratatui::{
     layout::Rect,
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, ListState},
+    widgets::Block,
     Frame,
 };
 use crate::app::App;
-use crate::app::tabs::TabState;
+use crate::ui::list_helper::{draw_virtual_list, item_style};
 
 pub fn draw_history(frame: &mut Frame, app: &App, area: Rect, focused: bool) {
     let block = Block::default()
-        .title("History")
-        .borders(Borders::ALL)
+        .title(format!("History ({})", app.history.items.len()))
+        .borders(ratatui::widgets::Borders::ALL)
         .border_style(if focused {
             Style::default().fg(Color::Yellow)
         } else {
             Style::default()
         });
-    let items: Vec<ListItem> = app
-        .history
-        .items
-        .iter()
-        .enumerate()
-        .map(|(i, h)| {
-            let style = if i == app.history.cursor {
-                Style::default().add_modifier(Modifier::REVERSED)
-            } else {
-                Style::default()
-            };
-            ListItem::new(Line::from(vec![
-                Span::styled(
-                    format!("{:<16}", h.time.format("%Y-%m-%d %H:%M")),
-                    style,
-                ),
-                Span::raw("  "),
-                Span::styled(format!("{:<10}", h.operation), style),
-                Span::raw("  "),
-                Span::styled(h.ref_.clone(), style),
-            ]))
-        })
-        .collect();
-    let mut state = ListState::default();
-    state.select(app.history.selected());
-    frame.render_stateful_widget(List::new(items).block(block), area, &mut state);
+
+    let total = app.history.items.len();
+    let cursor = app.history.cursor;
+    let mut offset = 0;
+
+    draw_virtual_list(frame, area, block, total, cursor, &mut offset, |i, cursor| {
+        let h = &app.history.items[i];
+        let style = item_style(i, cursor);
+        ratatui::widgets::ListItem::new(Line::from(vec![
+            Span::styled(
+                format!("{:<16}", h.time.format("%Y-%m-%d %H:%M")),
+                style,
+            ),
+            Span::raw("  "),
+            Span::styled(format!("{:<10}", h.operation), style),
+            Span::raw("  "),
+            Span::styled(h.ref_.clone(), style),
+        ]))
+    });
 }

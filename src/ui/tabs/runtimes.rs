@@ -1,40 +1,33 @@
 use ratatui::{
     layout::Rect,
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, ListState},
+    widgets::Block,
     Frame,
 };
 use crate::app::App;
-use crate::app::tabs::TabState;
+use crate::ui::list_helper::{draw_virtual_list, item_style};
 
 pub fn draw_runtimes(frame: &mut Frame, app: &App, area: Rect, focused: bool) {
     let block = Block::default()
-        .title("Runtimes")
-        .borders(Borders::ALL)
+        .title(format!("Runtimes ({})", app.runtimes.items.len()))
+        .borders(ratatui::widgets::Borders::ALL)
         .border_style(if focused {
             Style::default().fg(Color::Yellow)
         } else {
             Style::default()
         });
-    let items: Vec<ListItem> = app
-        .runtimes
-        .items
-        .iter()
-        .enumerate()
-        .map(|(i, r)| {
-            let style = if i == app.runtimes.cursor {
-                Style::default().add_modifier(Modifier::REVERSED)
-            } else {
-                Style::default()
-            };
-            ListItem::new(Line::from(vec![
-                Span::styled(format!("{:<40}", r.name), style),
-                Span::styled(r.version.clone(), style),
-            ]))
-        })
-        .collect();
-    let mut state = ListState::default();
-    state.select(app.runtimes.selected());
-    frame.render_stateful_widget(List::new(items).block(block), area, &mut state);
+
+    let total = app.runtimes.items.len();
+    let cursor = app.runtimes.cursor;
+    let mut offset = 0;
+
+    draw_virtual_list(frame, area, block, total, cursor, &mut offset, |i, cursor| {
+        let r = &app.runtimes.items[i];
+        let style = item_style(i, cursor);
+        ratatui::widgets::ListItem::new(Line::from(vec![
+            Span::styled(format!("{:<40}", r.name), style),
+            Span::styled(r.version.clone(), style),
+        ]))
+    });
 }

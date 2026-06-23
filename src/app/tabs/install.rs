@@ -9,6 +9,7 @@ pub struct InstallTab {
     pub cursor: usize,
     pub loading: bool,
     pub debounce_token: u64,
+    pub offset: usize,
 }
 
 impl TabState for InstallTab {

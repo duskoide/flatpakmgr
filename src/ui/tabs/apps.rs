@@ -2,11 +2,12 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap},
+    widgets::{Block, Borders, Paragraph, Wrap},
     Frame,
 };
 use crate::app::mode::Focus;
 use crate::app::App;
+use crate::ui::list_helper::{draw_virtual_list, item_style};
 
 pub fn draw_apps(frame: &mut Frame, app: &App, area: Rect, focus: Focus) {
     if app.last_width < 100 {
@@ -23,34 +24,28 @@ pub fn draw_apps(frame: &mut Frame, app: &App, area: Rect, focus: Focus) {
 
 fn draw_list(frame: &mut Frame, app: &App, area: Rect, focused: bool) {
     let block = Block::default()
-        .title("Apps")
+        .title(format!("Apps ({})", app.apps.items.len()))
         .borders(Borders::ALL)
         .border_style(if focused {
             Style::default().fg(Color::Yellow)
         } else {
             Style::default()
         });
-    let items: Vec<ListItem> = app
-        .apps
-        .filtered()
-        .iter()
-        .enumerate()
-        .map(|(i, a)| {
-            let style = if i == app.apps.cursor {
-                Style::default().add_modifier(Modifier::REVERSED)
-            } else {
-                Style::default()
-            };
-            ListItem::new(Line::from(vec![
-                Span::styled(format!("{:<24}", a.name), style),
-                Span::raw("  "),
-                Span::styled(a.version.clone(), style),
-            ]))
-        })
-        .collect();
-    let mut state = ListState::default();
-    state.select(Some(app.apps.cursor));
-    frame.render_stateful_widget(List::new(items).block(block), area, &mut state);
+
+    let filtered = app.apps.filtered();
+    let total = filtered.len();
+    let cursor = app.apps.cursor;
+    let mut offset = 0; // compute dynamically
+
+    draw_virtual_list(frame, area, block, total, cursor, &mut offset, |i, cursor| {
+        let a = &filtered[i];
+        let style = item_style(i, cursor);
+        ratatui::widgets::ListItem::new(Line::from(vec![
+            Span::styled(format!("{:<24}", a.name), style),
+            Span::raw("  "),
+            Span::styled(a.version.clone(), style),
+        ]))
+    });
 }
 
 fn draw_detail(frame: &mut Frame, app: &App, area: Rect, focused: bool) {

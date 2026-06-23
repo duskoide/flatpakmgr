@@ -1,44 +1,37 @@
 use ratatui::{
     layout::Rect,
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, ListState},
+    widgets::Block,
     Frame,
 };
 use crate::app::App;
-use crate::app::tabs::TabState;
+use crate::ui::list_helper::{draw_virtual_list, item_style};
 
 pub fn draw_remotes(frame: &mut Frame, app: &App, area: Rect, focused: bool) {
     let block = Block::default()
-        .title("Remotes")
-        .borders(Borders::ALL)
+        .title(format!("Remotes ({})", app.remotes.items.len()))
+        .borders(ratatui::widgets::Borders::ALL)
         .border_style(if focused {
             Style::default().fg(Color::Yellow)
         } else {
             Style::default()
         });
-    let items: Vec<ListItem> = app
-        .remotes
-        .items
-        .iter()
-        .enumerate()
-        .map(|(i, r)| {
-            let style = if i == app.remotes.cursor {
-                Style::default().add_modifier(Modifier::REVERSED)
-            } else {
-                Style::default()
-            };
-            let status = if r.disabled { "[disabled]" } else { "[enabled]" };
-            ListItem::new(Line::from(vec![
-                Span::styled(format!("{:<24}", r.name), style),
-                Span::raw("  "),
-                Span::styled(status.to_string(), style),
-                Span::raw("  "),
-                Span::styled(r.url.clone(), style),
-            ]))
-        })
-        .collect();
-    let mut state = ListState::default();
-    state.select(app.remotes.selected());
-    frame.render_stateful_widget(List::new(items).block(block), area, &mut state);
+
+    let total = app.remotes.items.len();
+    let cursor = app.remotes.cursor;
+    let mut offset = 0;
+
+    draw_virtual_list(frame, area, block, total, cursor, &mut offset, |i, cursor| {
+        let r = &app.remotes.items[i];
+        let style = item_style(i, cursor);
+        let status = if r.disabled { "[disabled]" } else { "[enabled]" };
+        ratatui::widgets::ListItem::new(Line::from(vec![
+            Span::styled(format!("{:<24}", r.name), style),
+            Span::raw("  "),
+            Span::styled(status.to_string(), style),
+            Span::raw("  "),
+            Span::styled(r.url.clone(), style),
+        ]))
+    });
 }
